@@ -4,7 +4,6 @@
 //
 ////////////////////////////////////
 
-const intrinsics = @import("std").zig.c_builtins;
 const std = @import("std");
 
 pub const BoardState = struct {
@@ -42,17 +41,17 @@ pub const BoardState = struct {
         };
     }
 
-    const PieceIndex = enum {
-        const PIECE_OFFSET: u8 = 5;
-        const QUEEN: u8 = 0;
-        const ROOK: u8 = 1;
-        const BISHOP: u8 = 2;
-        const KNIGHT: u8 = 3;
-        const PAWN: u8 = 4;
-        const KING: u8 = 5;
-        const FULL_BOARD: u8 = 0;
-        const TEAM_WHITE: u8 = 1;
-        const TEAM_BLACK: u8 = 2;
+    pub const PieceIndex = enum {
+        pub const PIECE_OFFSET: u8 = 5;
+        pub const QUEEN: u8 = 0;
+        pub const ROOK: u8 = 1;
+        pub const BISHOP: u8 = 2;
+        pub const KNIGHT: u8 = 3;
+        pub const PAWN: u8 = 4;
+        pub const KING: u8 = 5;
+        pub const FULL_BOARD: u8 = 0;
+        pub const TEAM_WHITE: u8 = 1;
+        pub const TEAM_BLACK: u8 = 2;
     };
 };
 
@@ -61,7 +60,7 @@ test "Board state" {
     try std.testing.expect(0 != bs.blockMask);
 }
 
-const MoveList = struct {
+pub const MoveList = struct {
     end: u16 = 0,
     moves: [100]u16,
     pub fn init() MoveList {
@@ -103,7 +102,7 @@ test "Move list" {
 
 const SIZE_OF_BOARD: u8 = 64;
 
-const MoveModifiers = enum {
+pub const MoveModifiers = enum {
     const FROM_MASK: u16 = 63;
     const TO_MASK: u16 = 4032;
     const FROM_TO_MASK: u16 = 4095;
@@ -124,13 +123,3 @@ const MoveModifiers = enum {
     const BISHOP_PROMO_CAPTURE: u16 = 57344;
     const KNIGHT_PROMO_CAPTURE: u16 = 61440;
 };
-
-pub fn bitscan(bytes: u64) u8 {
-    return @ctz(bytes);
-}
-
-test "Bitscan" {
-    for (0..64) |i| {
-        try std.testing.expectEqual(i, bitscan(@as(u64, 1) << @intCast(i)));
-    }
-}

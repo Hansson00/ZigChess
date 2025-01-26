@@ -29,12 +29,19 @@ pub fn printBoard(bs: *BoardState) !void {
     board[setIndex(bs.kings[0])] = 'K';
     board[setIndex(bs.kings[1])] = 'k';
 
+    const turn: u8 = if (bs.whiteTurn == 1) 'W' else 'B';
+    const flags = getFlagString(bs.castlingRights);
+
     const stdout_file = std.io.getStdOut().writer();
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
 
-    try stdout.print("{s}", .{board});
-    try stdout.print("\n", .{});
+    if (bs.enPassant != 0x0) {
+        try stdout.print("{s}\nTurn: {c}\t Nr: {d}\t Ep: {s}\nFlags: {s}\n", .{ board, turn, bs.turns, epRep(bs.enPassant), flags });
+    } else {
+        try stdout.print("{s}\nTurn: {c}\t Nr: {d}\nFlags: {s}\n", .{ board, turn, bs.turns, flags });
+    }
+
     try bw.flush();
 }
 
@@ -43,8 +50,7 @@ pub fn printBitboard(positions: u64) !void {
 
     var bitboard = positions;
     while (bitboard != 0) {
-        const pos = @ctz(bitboard);
-        board[setIndex(pos)] = 'x';
+        board[setIndex(@ctz(bitboard))] = 'x';
         bitboard &= bitboard - 1;
     }
 
@@ -57,13 +63,36 @@ pub fn printBitboard(positions: u64) !void {
     try bw.flush();
 }
 
+fn epRep(ep: u8) [2]u8 {
+    const char = ep % 8 + 'a';
+    const number = (ep / 8) + '0';
+    return .{ char, number };
+}
+
 fn clearBoard() void {
     for (0..64) |i| {
         board[setIndex(@intCast(i))] = ' ';
     }
 }
 
-fn setIndex(pos: u32) u32 {
+fn setIndex(pos: u16) u16 {
     const row = 7 - (pos >> 3);
     return rowOffset + row * rowSize * 2 + (pos & 7) * 4;
+}
+
+fn getFlagString(flags: u8) [4]u8 {
+    var flagString = [_]u8{ ' ', ' ', ' ', ' ' };
+    if (flags & 0b1 != 0) {
+        flagString[0] = 'K';
+    }
+    if (flags & 0b10 != 0) {
+        flagString[1] = 'Q';
+    }
+    if (flags & 0b100 != 0) {
+        flagString[2] = 'k';
+    }
+    if (flags & 0b1000 != 0) {
+        flagString[3] = 'q';
+    }
+    return flagString;
 }
