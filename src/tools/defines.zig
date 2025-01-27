@@ -1,8 +1,13 @@
-////////////////////////////////////
-//
+////////////////////////////////////////////////
+///  ______           ___ _
+/// / _  (_) __ _    / __\ |__   ___  ___ ___
+/// \// /| |/ _` |  / /  | '_ \ / _ \/ __/ __|
+///  / //\ | (_| | / /___| | | |  __/\__ \__ \
+/// /____/_|\__, | \____/|_| |_|\___||___/___/
+///         |___/
+////////////////////////////////////////////////
 // @brief All defines for the engine
-//
-////////////////////////////////////
+////////////////////////////////////////////////
 
 const std = @import("std");
 
@@ -42,13 +47,18 @@ pub const BoardState = struct {
     }
 
     pub const PieceIndex = enum {
+        // Offset to black pieces
         pub const PIECE_OFFSET: u8 = 5;
+
+        // For pieceBoards
         pub const QUEEN: u8 = 0;
         pub const ROOK: u8 = 1;
         pub const BISHOP: u8 = 2;
         pub const KNIGHT: u8 = 3;
         pub const PAWN: u8 = 4;
-        pub const KING: u8 = 5;
+        // pub const KING: u8 = 5;
+
+        // For teamBoards
         pub const FULL_BOARD: u8 = 0;
         pub const TEAM_WHITE: u8 = 1;
         pub const TEAM_BLACK: u8 = 2;
@@ -63,6 +73,7 @@ test "Board state" {
 pub const MoveList = struct {
     end: u16 = 0,
     moves: [100]u16,
+
     pub fn init() MoveList {
         return MoveList{
             .end = 0,
@@ -103,23 +114,23 @@ test "Move list" {
 const SIZE_OF_BOARD: u8 = 64;
 
 pub const MoveModifiers = enum {
-    const FROM_MASK: u16 = 63;
-    const TO_MASK: u16 = 4032;
-    const FROM_TO_MASK: u16 = 4095;
-    const SPECIAL_MOVE_MASK: u16 = 61440;
-    const QUIET_MOVE: u16 = 0;
-    const DPUSH: u16 = 4096;
-    const KING_CASTLE: u16 = 8192;
-    const QUEEN_CASTLE: u16 = 12288;
-    const CAPTURE: u16 = 16384;
-    const EP_CAPTURE: u16 = 20480;
-    const PROMO: u16 = 32768;
-    const QUEEN_PROMO: u16 = 32768;
-    const ROOK_PROMO: u16 = 36864;
-    const BISHOP_PROMO: u16 = 40960;
-    const KNIGHT_PROMO: u16 = 45056;
-    const QUEEN_PROMO_CAPTURE: u16 = 49152;
-    const ROOK_PROMO_CAPTURE: u16 = 53248;
-    const BISHOP_PROMO_CAPTURE: u16 = 57344;
-    const KNIGHT_PROMO_CAPTURE: u16 = 61440;
+    pub const FROM_MASK: u16 = 63;
+    pub const TO_MASK: u16 = 4032;
+    pub const FROM_TO_MASK: u16 = 4095;
+    pub const SPECIAL_MOVE_MASK: u16 = 61440;
+    pub const QUIET_MOVE: u16 = 0;
+    pub const DPUSH: u16 = 4096;
+    pub const KING_CASTLE: u16 = 8192;
+    pub const QUEEN_CASTLE: u16 = 12288;
+    pub const CAPTURE: u16 = 16384;
+    pub const EP_CAPTURE: u16 = 20480;
+    pub const PROMO: u16 = 32768;
+    pub const QUEEN_PROMO: u16 = 32768;
+    pub const ROOK_PROMO: u16 = 36864;
+    pub const BISHOP_PROMO: u16 = 40960;
+    pub const KNIGHT_PROMO: u16 = 45056;
+    pub const QUEEN_PROMO_CAPTURE: u16 = 49152;
+    pub const ROOK_PROMO_CAPTURE: u16 = 53248;
+    pub const BISHOP_PROMO_CAPTURE: u16 = 57344;
+    pub const KNIGHT_PROMO_CAPTURE: u16 = 61440;
 };

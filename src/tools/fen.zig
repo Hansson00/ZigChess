@@ -1,8 +1,29 @@
+////////////////////////////////////////////////
+///  ______           ___ _
+/// / _  (_) __ _    / __\ |__   ___  ___ ___
+/// \// /| |/ _` |  / /  | '_ \ / _ \/ __/ __|
+///  / //\ | (_| | / /___| | | |  __/\__ \__ \
+/// /____/_|\__, | \____/|_| |_|\___||___/___/
+///         |___/
+////////////////////////////////////////////////
+/// @brief Fen string manipulation
+////////////////////////////////////////////////
+
 const BoardState = @import("defines.zig").BoardState;
 const std = @import("std");
 const pow = std.math.pow;
+const stringTools = @import("stringTools.zig");
 
-/// @brief sets a fenstring to a given board
+pub const baseFenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+////////////////////////////////////////////////
+/// @brief Sets a fen string to a given board
+///
+/// @param [in/out] BoardState to be altered
+/// @param [in] fen string to be applied
+///
+/// @note Currently missing half moves
+////////////////////////////////////////////////
 pub fn setFen(bs: *BoardState, fenString: []const u8) void {
     var phase: u8 = 0;
     var row: u8 = 7;
@@ -17,7 +38,7 @@ pub fn setFen(bs: *BoardState, fenString: []const u8) void {
         }
         switch (phase) {
             0 => {
-                if (isChar(c)) {
+                if (stringTools.isChar(c)) {
                     const space: u64 = @as(u64, 1) << @intCast(row * 8 + col);
                     insertPiece(bs, space, c);
                 } else {
@@ -28,12 +49,12 @@ pub fn setFen(bs: *BoardState, fenString: []const u8) void {
                 bs.whiteTurn = if (c == 'w') 1 else 0;
             },
             2 => {
-                bs.castlingRights |= setCastlingFlags(c);
+                bs.castlingRights |= getCastlingFlags(c);
             },
             3 => {
-                if (isChar(c)) {
+                if (stringTools.isChar(c)) {
                     ep = c - 'a';
-                } else if (isNumber(c)) {
+                } else if (stringTools.isNumber(c)) {
                     bs.enPassant = ep + (c - '0') * 8;
                 }
             },
@@ -52,7 +73,48 @@ pub fn setFen(bs: *BoardState, fenString: []const u8) void {
     }
 }
 
-inline fn setCastlingFlags(c: u8) u8 {
+////////////////////////////////////////////////
+/// @brief Handles special characters for
+///        fen string
+///
+/// @param [in] character
+/// @param [in/out] current row
+/// @param [in/out] current col
+////////////////////////////////////////////////
+inline fn insertPiece(bs: *BoardState, position: u64, c: u8) void {
+    if (c == 'k' or c == 'K') {
+        bs.kings[@intFromBool(!stringTools.isCapital(c))] = @ctz(position);
+    } else {
+        bs.pieceBoards[tableIndex(c)] |= position;
+    }
+    bs.teamBoards[BoardState.PieceIndex.FULL_BOARD] |= position;
+    bs.teamBoards[BoardState.PieceIndex.TEAM_BLACK - @intFromBool(stringTools.isCapital(c))] |= position;
+}
+
+////////////////////////////////////////////////
+/// @brief Handles special characters for
+///        fen string
+///
+/// @param [in] character
+/// @param [in/out] current row
+/// @param [in/out] current col
+////////////////////////////////////////////////
+inline fn specialChar(c: u8, row: *u8, col: *u8) void {
+    if (c == '/') {
+        row.* -= 1;
+        col.* = 255;
+    } else if (stringTools.isNumber(c)) {
+        col.* += (c - 49);
+    }
+}
+
+////////////////////////////////////////////////
+/// @brief Gets castling flags from a character
+///
+/// @param [in] character for flag
+/// @return Castling flags as a bitfiled (use |=)
+////////////////////////////////////////////////
+inline fn getCastlingFlags(c: u8) u8 {
     switch (c) {
         'K' => {
             return 0b1;
@@ -71,41 +133,14 @@ inline fn setCastlingFlags(c: u8) u8 {
     return 0;
 }
 
-inline fn specialChar(c: u8, row: *u8, col: *u8) void {
-    if (c == '/') {
-        row.* -= 1;
-        col.* = 255;
-    } else if (isNumber(c)) {
-        col.* += (c - 49);
-    }
-}
-
-inline fn insertPiece(bs: *BoardState, position: u64, c: u8) void {
-    if (c == 'k' or c == 'K') {
-        bs.kings[@intFromBool(!isCapital(c))] = @ctz(position);
-    } else {
-        bs.pieceBoards[tableIndex(c)] |= position;
-    }
-    bs.teamBoards[BoardState.PieceIndex.FULL_BOARD] |= position;
-    bs.teamBoards[BoardState.PieceIndex.TEAM_BLACK - @intFromBool(isCapital(c))] |= position;
-}
-
-inline fn isChar(c: u8) bool {
-    return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z');
-}
-
-inline fn isNumber(c: u8) bool {
-    return (c >= '0' and c <= '9');
-}
-
-inline fn isCapital(c: u8) bool {
-    return c < 'a';
-}
-
-const alphabetSize = 'z' - 'a';
-
-fn getLookup() [alphabetSize]u8 {
-    var table: [alphabetSize]u8 = [_]u8{0} ** (alphabetSize);
+////////////////////////////////////////////////
+/// @brief Generates a lookupTable for
+///        setting pieces
+///
+/// @return table
+////////////////////////////////////////////////
+fn getLookup() [stringTools.alphabetSize]u8 {
+    var table: [stringTools.alphabetSize]u8 = [_]u8{0} ** (stringTools.alphabetSize);
 
     table['b' - 'a'] = BoardState.PieceIndex.BISHOP;
     table['n' - 'a'] = BoardState.PieceIndex.KNIGHT;
@@ -118,8 +153,15 @@ fn getLookup() [alphabetSize]u8 {
 
 const lookupTable: ['z' - 'a']u8 = getLookup();
 
+////////////////////////////////////////////////
+/// @brief Takes a character and returns
+///        pieceBoard index
+///
+/// @param [in] character of piece
+/// @return index
+////////////////////////////////////////////////
 inline fn tableIndex(c: u8) u8 {
-    if (isCapital(c)) {
+    if (stringTools.isCapital(c)) {
         return (lookupTable[c - 'A']) + 0;
     } else {
         return (lookupTable[c - 'a']) + 5;

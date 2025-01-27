@@ -1,10 +1,19 @@
+////////////////////////////////////////////////
+///  ______           ___ _
+/// / _  (_) __ _    / __\ |__   ___  ___ ___
+/// \// /| |/ _` |  / /  | '_ \ / _ \/ __/ __|
+///  / //\ | (_| | / /___| | | |  __/\__ \__ \
+/// /____/_|\__, | \____/|_| |_|\___||___/___/
+///         |___/
+////////////////////////////////////////////////
+
 const std = @import("std");
-const defines = @import("tools/defines.zig");
 const draw = @import("tools/draw.zig");
 const fenString = @import("tools/fen.zig");
+const defines = @import("tools/defines.zig");
+const engine = @import("engine/engine.zig");
 
 pub fn main() !void {
-    var bs = defines.BoardState.init();
-    fenString.setFen(&bs, "rnbqkbnr/ppppppp1/7p/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    try draw.printBoard(&bs);
+    // try draw.printBoard(&engine.boardstate);
+    try engine.mainLoop();
 }

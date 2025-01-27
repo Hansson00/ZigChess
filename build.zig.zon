@@ -66,6 +66,8 @@
         "build.zig.zon",
         "src",
         "src/tools",
+        "src/engine",
+        "src/moveGen",
         // For example...
         //"LICENSE",
         //"README.md",
