@@ -12,8 +12,11 @@ const draw = @import("tools/draw.zig");
 const fenString = @import("tools/fen.zig");
 const defines = @import("tools/defines.zig");
 const engine = @import("engine/engine.zig");
+const magicalBits = @import("moveGen/magicalBitboards.zig");
 
 pub fn main() !void {
-    // try draw.printBoard(&engine.boardstate);
-    try engine.mainLoop();
+    for (0..64) |i| {
+        try draw.printBitboard(magicalBits.getBishopAttacks(@intCast(i), @as(u64, 1) << @intCast(i)));
+    }
+    // try engine.mainLoop();
 }

@@ -82,7 +82,7 @@ pub fn stringToMove(input: []u8) u16 {
             partialMove = c - 'a';
         } else if (stringTools.isNumber(c)) {
             if (move != 0) {
-                move |= ((c - '1') * 8 + partialMove) << 4;
+                move |= ((c - '1') * 8 + partialMove) << 6;
             } else {
                 move = (c - '1') * 8 + partialMove;
                 partialMove = 0;

@@ -24,7 +24,7 @@ const defines = @import("../tools/defines.zig");
 ////////////////////////////////////////////////
 pub fn movePiece(bs: *defines.BoardState, move: u16) void {
     const fromSquare = move & defines.MoveModifiers.FROM_MASK;
-    const toSquare = (move & defines.MoveModifiers.TO_MASK) >> 4;
+    const toSquare = (move & defines.MoveModifiers.TO_MASK) >> 6;
 
     const fromBitboard: u64 = @as(u64, 1) << @intCast(fromSquare);
     const toBitboard: u64 = @as(u64, 1) << @intCast(toSquare);
