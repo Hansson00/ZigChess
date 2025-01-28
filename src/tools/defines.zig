@@ -63,6 +63,13 @@ pub const BoardState = struct {
         pub const TEAM_WHITE: u8 = 1;
         pub const TEAM_BLACK: u8 = 2;
     };
+    pub const CastlingFlags = enum {
+        // Castling flags
+        pub const W_KING_CASTLE_FLAG: u8 = 0b1;
+        pub const W_QUEEN_CASTLE_FLAG: u8 = 0b10;
+        pub const B_KING_CASTLE_FLAG: u8 = 0b100;
+        pub const B_QUEEN_CASTLE_FLAG: u8 = 0b1000;
+    };
 };
 
 test "Board state" {

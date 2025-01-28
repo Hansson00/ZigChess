@@ -13,10 +13,12 @@ const fenString = @import("tools/fen.zig");
 const defines = @import("tools/defines.zig");
 const engine = @import("engine/engine.zig");
 const magicalBits = @import("moveGen/magicalBitboards.zig");
+const king = @import("moveGen/king.zig");
+const knight = @import("moveGen/knight.zig");
 
 pub fn main() !void {
-    for (0..64) |i| {
-        try draw.printBitboard(magicalBits.getBishopAttacks(@intCast(i), @as(u64, 1) << @intCast(i)));
-    }
-    // try engine.mainLoop();
+    var bs = defines.BoardState.init();
+    fenString.setFen(&bs, "rq2kq1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
+    try draw.printBoard(&bs);
+    try draw.printBitboard(knight.getKnightAttacks(0));
 }
