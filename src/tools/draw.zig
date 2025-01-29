@@ -10,8 +10,8 @@
 ////////////////////////////////////////////////
 
 const std = @import("std");
-const bitscan = @import("defines.zig").bitscan;
-const BoardState = @import("defines.zig").BoardState;
+const defines = @import("defines.zig");
+const BoardState = defines.BoardState;
 
 const rowSize = 37;
 const rowOffset = 42;
@@ -42,14 +42,11 @@ pub fn printBoard(bs: *BoardState) !void {
     const turn: u8 = if (bs.whiteTurn == 1) 'W' else 'B';
     const flags = getFlagString(bs.castlingRights);
 
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
-
+    var bw = getBufferedWriter();
     if (bs.enPassant != 0x0) {
-        try stdout.print("{s}\nTurn: {c}\t Nr: {d}\t Ep: {s}\nFlags: {s}\n", .{ board, turn, bs.turns, epRep(bs.enPassant), flags });
+        try bw.writer().print("{s}\nTurn: {c}\t Nr: {d}\t Ep: {s}\nFlags: {s}\n", .{ board, turn, bs.turns, epRep(bs.enPassant), flags });
     } else {
-        try stdout.print("{s}\nTurn: {c}\t Nr: {d}\nFlags: {s}\n", .{ board, turn, bs.turns, flags });
+        try bw.writer().print("{s}\nTurn: {c}\t Nr: {d}\nFlags: {s}\n", .{ board, turn, bs.turns, flags });
     }
 
     try bw.flush();
@@ -58,6 +55,8 @@ pub fn printBoard(bs: *BoardState) !void {
 ////////////////////////////////////////////////
 /// @brief Draws a given bitboard on the board.
 ///        Uses x in the place of a bit
+///
+/// @param bitboard
 ////////////////////////////////////////////////
 pub fn printBitboard(positions: u64) !void {
     clearBoard();
@@ -68,12 +67,26 @@ pub fn printBitboard(positions: u64) !void {
         bitboard &= bitboard - 1;
     }
 
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    var bw = getBufferedWriter();
+    try bw.writer().print("{s}\n", .{board});
+    try bw.flush();
+}
 
-    try stdout.print("{s}", .{board});
-    try stdout.print("\n", .{});
+////////////////////////////////////////////////
+/// @brief Draws a move to the board with the
+///        from square represented by F and
+///        to square by T
+///
+/// @param move
+////////////////////////////////////////////////
+pub fn printMove(move: u16) !void {
+    clearBoard();
+
+    board[setIndex(move & defines.MoveModifiers.FROM_MASK)] = 'F';
+    board[setIndex(move & defines.MoveModifiers.TO_MASK >> 6)] = 'T';
+
+    var bw = getBufferedWriter();
+    try bw.writer().print("{s}\n", .{board});
     try bw.flush();
 }
 
@@ -133,4 +146,9 @@ fn epRep(ep: u8) [2]u8 {
     const char = ep % 8 + 'a';
     const number = (ep / 8) + '0';
     return .{ char, number };
+}
+
+inline fn getBufferedWriter() @TypeOf(std.io.bufferedWriter(std.io.getStdOut().writer())) {
+    const stdout_file = std.io.getStdOut().writer();
+    return std.io.bufferedWriter(stdout_file);
 }
