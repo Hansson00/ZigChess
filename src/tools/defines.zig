@@ -101,6 +101,14 @@ pub const MoveList = struct {
     pub inline fn resetMoves(self: *MoveList) void {
         self.end = 0;
     }
+
+    pub inline fn createMoveWMod(startPosition: u8, endPosition: u8, moveMod: MoveModifiers) u16 {
+        return startPosition | (endPosition << 6) | moveMod;
+    }
+
+    pub inline fn createMove(startPosition: u8, endPosition: u8) u16 {
+        return startPosition | (endPosition << 6);
+    }
 };
 
 test "Move list" {
