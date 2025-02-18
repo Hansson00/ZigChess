@@ -15,17 +15,27 @@ pub const BoardState = struct {
     pieceBoards: [10]u64,
     teamBoards: [5]u64,
 
+    // Remove
     pinnedSquares: u64,
+
+    // Remove
     blockMask: u64,
 
     attacks: u64,
     kings: [2]u8,
+
+    // Might remove
     numCheckers: u8,
+
     castlingRights: u8,
     enPassant: u8,
     turns: u8,
+
+    // Remove
     whiteTurn: u8,
-    hash: u64,
+
+    blackTurn: u8,
+    // hash: u64,
 
     pub fn init() BoardState {
         return BoardState{
@@ -63,6 +73,7 @@ pub const BoardState = struct {
         pub const TEAM_WHITE: u8 = 1;
         pub const TEAM_BLACK: u8 = 2;
     };
+
     pub const CastlingFlags = enum {
         // Castling flags
         pub const W_KING_CASTLE_FLAG: u8 = 0b1;
@@ -111,6 +122,18 @@ pub const MoveList = struct {
     }
 };
 
+pub inline fn sameColumn(piece1: u8, piece2: u8) bool {
+    return piece1 & 7 == piece2 & 7;
+}
+
+pub inline fn sameDiagonal(piece1: u8, piece2: u8) bool {
+    return @abs(piece1 / 8 - piece2 / 8) == @abs(piece1 & 7 - piece2 & 7);
+}
+
+pub inline fn sameRow(piece1: u8, piece2: u8) bool {
+    return piece1 / 8 == piece2 / 8;
+}
+
 test "Move list" {
     var ml = MoveList.init();
     const move1: u16 = 16;
@@ -128,6 +151,48 @@ test "Move list" {
 
 const SIZE_OF_BOARD: u8 = 64;
 
+///////////////////////////////////////
+///   +---+---+---+---+---+---+---+---+
+/// 8 | x |   |   |   |   |   |   | x |
+///   +---+---+---+---+---+---+---+---+
+/// 7 |   |   |   |   |   |   |   |   |
+///   +---+---+---+---+---+---+---+---+
+/// 6 |   |   |   |   |   |   |   |   |
+///   +---+---+---+---+---+---+---+---+
+/// 5 |   |   |   |   |   |   |   |   |
+///   +---+---+---+---+---+---+---+---+
+/// 4 |   |   |   |   |   |   |   |   |
+///   +---+---+---+---+---+---+---+---+
+/// 3 |   |   |   |   |   |   |   |   |
+///   +---+---+---+---+---+---+---+---+
+/// 2 |   |   |   |   |   |   |   |   |
+///   +---+---+---+---+---+---+---+---+
+/// 1 | x |   |   |   |   |   |   | x |
+///   +---+---+---+---+---+---+---+---+
+///     a   b   c   d   e   f   g   h
+///////////////////////////////////////
+const rookCorners: u64 = 1 | 1 << 7 | 1 << 56 | 1 << 63;
+
+/// ----------|------|-----------|---------|-----------|-----------|----------------------
+///  dec code | code | promotion | capture | special 1 | special 0 | kind of move
+/// ----------|------|-----------|---------|-----------|-----------|----------------------
+///  0        | 0    | 0         | 0       | 0         | 0         | quiet moves
+///  4096     | 1    | 0         | 0       | 0         | 1         | double pawn push
+///  8192     | 2    | 0         | 0       | 1         | 0         | king castle
+///  12288    | 3    | 0         | 0       | 1         | 1         | queen castle
+///  16384    | 4    | 0         | 1       | 0         | 0         | captures
+///  20480    | 5    | 0         | 1       | 0         | 1         | ep-capture
+///           | 6    | 0         | 1       | 1         | 0         | --
+///           | 7    | 0         | 1       | 1         | 1         | --
+///  32768    | 8    | 1         | 0       | 0         | 0         | knight-promotion
+///  36864    | 9    | 1         | 0       | 0         | 1         | bishop-promotion
+///  40960    | 10   | 1         | 0       | 1         | 0         | rook-promotion
+///  45056    | 11   | 1         | 0       | 1         | 1         | queen-promotion
+///  49152    | 12   | 1         | 1       | 0         | 0         | knight-promo capture
+///  53248    | 13   | 1         | 1       | 0         | 1         | bishop-promo capture
+///  57344    | 14   | 1         | 1       | 1         | 0         | rook-promo capture
+///  61440    | 15   | 1         | 1       | 1         | 1         | queen-promo capture
+/// ----------|------|-----------|---------|-----------|-----------|----------------------
 pub const MoveModifiers = enum {
     pub const FROM_MASK: u16 = 63;
     pub const TO_MASK: u16 = 4032;

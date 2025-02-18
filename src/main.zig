@@ -20,5 +20,6 @@ pub fn main() !void {
     var bs = defines.BoardState.init();
     fenString.setFen(&bs, "rq2kq1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
     try draw.printBoard(&bs);
-    try draw.printBitboard(knight.getKnightAttacks(0));
+    const rookCorners = 1 | 1 << 7 | 1 << 56 | 1 << 63;
+    try draw.printBitboard(rookCorners);
 }

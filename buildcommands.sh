@@ -1,5 +1,7 @@
 #!/bin/bash -e
+
 alias build='zig build'
-alias run=' zig build; if [ $? -eq 0 ]; then
-./zig-out/bin/ZigChess 
-fi'
+alias run='./zig-out/bin/ZigChess'
+
+echo "build - zig build"
+echo "run - runs executable"
