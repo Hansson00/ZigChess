@@ -22,6 +22,55 @@ pub fn getKnightAttacks(position: u8) u64 {
     return knightMovementTable[@intCast(position)];
 }
 
+pub fn moveGenerator(
+    bs: defines.BoardState,
+    ml: *defines.MoveList,
+    moveMod: defines.MoveModifiers,
+    pieceOrigin: u8,
+) void {
+    const PieceIndex = defines.BoardState.PieceIndex;
+    var moves = getKnightAttacks(pieceOrigin);
+
+    if (moveMod == defines.MoveModifiers.QUIET_MOVE) {
+        moves &= ~bs.teamBoards[PieceIndex.FULL_BOARD];
+    } else {
+        moves &= bs.teamBoards[PieceIndex.TEAM_BLACK - bs.whiteTurn];
+    }
+
+    while (moves) {
+        const destination = @ctz(moves);
+        ml.addMove(defines.MoveList.createMoveWMod(pieceOrigin, destination, moveMod));
+        moves &= moves - 1;
+    }
+}
+
+pub fn legalMoveGenerator(
+    bs: defines.BoardState,
+    ml: *defines.MoveList,
+    moveMod: defines.MoveModifiers,
+    pieceOrigin: u8,
+) void {
+    const pinned = (bs.pinnedSquares & (1 << pieceOrigin)) != 0;
+    if (pinned) {
+        return;
+    }
+
+    const PieceIndex = defines.BoardState.PieceIndex;
+    var moves = getKnightAttacks(pieceOrigin) & bs.blockMask;
+
+    if (moveMod == defines.MoveModifiers.QUIET_MOVE) {
+        moves &= ~bs.teamBoards[PieceIndex.FULL_BOARD];
+    } else {
+        moves &= bs.teamBoards[PieceIndex.TEAM_BLACK - bs.whiteTurn];
+    }
+
+    while (moves) {
+        const destination = @ctz(moves);
+        ml.addMove(defines.MoveList.createMoveWMod(pieceOrigin, destination, moveMod));
+        moves &= moves - 1;
+    }
+}
+
 const knightMovementTable: [64]u64 = initAttacks();
 
 fn initAttacks() [64]u64 {

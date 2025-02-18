@@ -12,33 +12,35 @@
 const defines = @import("../tools/defines.zig");
 
 ////////////////////////////////////////////////
-/// @brief Gets all king attacks given a
-///        BoardState
+/// @brief Get king movement given a BoardState
 ///
 /// @param [in] BoardState
-/// @return king attacks
+/// @return king quite moves
 ////////////////////////////////////////////////
-pub fn getKingAttacks(bs: defines.BoardState) u64 {
-    var attacks: u64 = kingAttackTable[bs.kings[@intFromBool(bs.whiteTurn == 0)]] & ~bs.attacks;
-
+pub fn getKingQuiet(bs: defines.BoardState) u64 {
+    const kingPosition = bs.kings[bs.blackTurn];
+    const PieceIndex = defines.BoardState.PieceIndex;
     const CastlingFlags = defines.BoardState.CastlingFlags;
+
+    var quiet: u64 = kingAttackTable[kingPosition] & ~bs.attacks & ~bs.teamBoards[PieceIndex.FULL_BOARD];
+
     if (bs.whiteTurn == 1) {
         if (bs.castlingRights & CastlingFlags.W_KING_CASTLE_FLAG != 0 and !(CastlingSquares.W_KING_SIDE & bs.teamBoards[0] != 0) and !(CastlingSquares.W_KING_SIDE & bs.attacks != 0)) {
-            attacks |= 1 << 6;
+            quiet |= 1 << 6;
         }
         if (bs.castlingRights & CastlingFlags.W_QUEEN_CASTLE_FLAG != 0 and !(CastlingSquares.W_QUEEN_SIDE_VACANT & bs.teamBoards[0] != 0) and !(CastlingSquares.W_QUEEN_SIDE & bs.attacks != 0)) {
-            attacks |= 1 << 2;
+            quiet |= 1 << 2;
         }
     } else {
         if (bs.castlingRights & CastlingFlags.B_KING_CASTLE_FLAG != 0 and !(CastlingSquares.B_KING_SIDE & bs.teamBoards[0] != 0) and !(CastlingSquares.B_KING_SIDE & bs.attacks != 0)) {
-            attacks |= 1 << 62;
+            quiet |= 1 << 62;
         }
         if (bs.castlingRights & CastlingFlags.B_QUEEN_CASTLE_FLAG != 0 and !(CastlingSquares.B_QUEEN_SIDE_VACANT & bs.teamBoards[0] != 0) and !(CastlingSquares.B_QUEEN_SIDE & bs.attacks != 0)) {
-            attacks |= 1 << 58;
+            quiet |= 1 << 58;
         }
     }
 
-    return attacks;
+    return quiet;
 }
 
 ////////////////////////////////////////////////
@@ -58,7 +60,7 @@ const CastlingSquares = enum {
     const B_QUEEN_SIDE: u64 = 1 << 58 | 1 << 59;
 };
 
-const kingAttackTable: [64]u64 = initAttacks();
+pub const kingAttackTable: [64]u64 = initAttacks();
 
 fn initAttacks() [64]u64 {
     var table: [64]u64 = undefined;

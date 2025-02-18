@@ -56,6 +56,123 @@ pub inline fn getRookAttacks(square: u8, occupancy: u64) u64 {
 }
 
 ////////////////////////////////////////////////
+// Pseudo legal
+////////////////////////////////////////////////
+
+pub fn rookMoveGenerator(
+    bs: defines.BoardState,
+    ml: *defines.MoveList,
+    moveMod: defines.MoveModifiers,
+    pieceOrigin: u8,
+) void {
+    const PieceIndex = defines.BoardState.PieceIndex;
+    var moves = getRookAttacks(pieceOrigin, bs.teamBoards[0]);
+
+    if (moveMod == defines.MoveModifiers.QUIET_MOVE) {
+        moves &= ~bs.teamBoards[PieceIndex.FULL_BOARD];
+    } else {
+        moves &= bs.teamBoards[PieceIndex.TEAM_BLACK - bs.whiteTurn];
+    }
+
+    const baseMove = pieceOrigin | moveMod;
+    while (moves) {
+        const destination = @ctz(moves);
+        ml.addMove(baseMove | (destination << 6));
+        moves &= moves - 1;
+    }
+}
+
+pub fn bishopMoveGenerator(
+    bs: defines.BoardState,
+    ml: *defines.MoveList,
+    moveMod: defines.MoveModifiers,
+    pieceOrigin: u8,
+) void {
+    const PieceIndex = defines.BoardState.PieceIndex;
+    var moves = getBishopAttacks(pieceOrigin, bs.teamBoards[0]);
+
+    if (moveMod == defines.MoveModifiers.QUIET_MOVE) {
+        moves &= ~bs.teamBoards[PieceIndex.FULL_BOARD];
+    } else {
+        moves &= bs.teamBoards[PieceIndex.TEAM_BLACK - bs.whiteTurn];
+    }
+
+    const baseMove = pieceOrigin | moveMod;
+    while (moves) {
+        const destination = @ctz(moves);
+        ml.addMove(baseMove | (destination << 6));
+        moves &= moves - 1;
+    }
+}
+
+////////////////////////////////////////////////
+// Legal
+////////////////////////////////////////////////
+
+pub fn legalRookMoveGenerator(
+    bs: defines.BoardState,
+    ml: *defines.MoveList,
+    moveMod: defines.MoveModifiers,
+    pieceOrigin: u8,
+) void {
+    const PieceIndex = defines.BoardState.PieceIndex;
+    var moves = getRookAttacks(pieceOrigin, bs.teamBoards[0]) & bs.blockMask;
+
+    const pinned = (bs.pinnedSquares & (1 << pieceOrigin)) != 0;
+    if (pinned) {
+        if (defines.sameColumn(pieceOrigin, bs.kings[1 - bs.whiteTurn])) {
+            moves &= defines.files[pieceOrigin & 7];
+        } else {
+            moves &= defines.ranks[pieceOrigin / 8];
+        }
+    }
+
+    if (moveMod == defines.MoveModifiers.QUIET_MOVE) {
+        moves &= ~bs.teamBoards[PieceIndex.FULL_BOARD];
+    } else {
+        moves &= bs.teamBoards[PieceIndex.TEAM_BLACK - bs.whiteTurn];
+    }
+
+    const baseMove = pieceOrigin | moveMod;
+    while (moves) {
+        const destination = @ctz(moves);
+        ml.addMove(baseMove | (destination << 6));
+        moves &= moves - 1;
+    }
+}
+
+pub fn legalBishopMoveGenerator(
+    bs: defines.BoardState,
+    ml: *defines.MoveList,
+    moveMod: defines.MoveModifiers,
+    pieceOrigin: u8,
+) void {
+    const PieceIndex = defines.BoardState.PieceIndex;
+    var moves = getBishopAttacks(pieceOrigin, bs.teamBoards[0]) & bs.blockMask;
+
+    const pinned = (bs.pinnedSquares & (1 << pieceOrigin)) != 0;
+    if (pinned) {
+        const kingX = bs.kings[1 - bs.whiteTurn] & 7;
+        const kingY = bs.kings[1 - bs.whiteTurn] / 8;
+        moves &= ~defines.files[kingX];
+        moves &= ~defines.ranks[kingY];
+    }
+
+    if (moveMod == defines.MoveModifiers.QUIET_MOVE) {
+        moves &= ~bs.teamBoards[PieceIndex.FULL_BOARD];
+    } else {
+        moves &= bs.teamBoards[PieceIndex.TEAM_BLACK - bs.whiteTurn];
+    }
+
+    const baseMove = pieceOrigin | moveMod;
+    while (moves) {
+        const destination = @ctz(moves);
+        ml.addMove(baseMove | (destination << 6));
+        moves &= moves - 1;
+    }
+}
+
+////////////////////////////////////////////////
 /// PRIVATE (Everything below is comptime)
 ////////////////////////////////////////////////
 
